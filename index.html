@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZAXY Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0b0f19; color: #c9d1d9; overflow-x: hidden; }
+        .editor { font-family: monospace; resize: vertical; min-height: 200px; }
+        .bg-glow { position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, rgba(11,15,25,1) 50%); z-index: -1; pointer-events: none; }
+        
+        .logo-img { animation: float 4s ease-in-out infinite; filter: drop-shadow(0px 10px 15px rgba(255, 255, 255, 0.15)); }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+        
+        /* CSS buat Chat Admin */
+        .chat-container { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: #0d1117; border-radius: 8px; border: 1px solid #30363d; }
+        .chat-bubble { max-width: 80%; padding: 8px 12px; border-radius: 10px; font-size: 13px; line-height: 1.4; }
+        .chat-user { background: #1f6feb; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .chat-admin { background: #30363d; color: white; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .chat-name { font-size: 10px; opacity: 0.7; margin-bottom: 2px; display: block; }
+
+        /* Efek transisi halaman */
+        .page-section { display: none; }
+        .page-section.active { display: flex; flex-direction: column; align-items: center; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<!-- Padding bottom biar ga ketutup menu navbar -->
+<body class="min-h-screen p-4 pb-24 relative">
+    <div class="bg-glow"></div>
+
+    <!-- ================= HALAMAN LOGIN ================= -->
+    <div id="authSection" class="w-full max-w-sm mx-auto mt-10 bg-[#161b22] border border-gray-700 rounded-xl p-6 shadow-2xl z-10 relative">
+        <div class="text-center mb-6">
+            <img src="logo.png" alt="ZAXY Logo" class="w-20 h-20 object-cover rounded-2xl mx-auto mb-3 logo-img" onerror="this.style.display='none'">
+            <h2 class="text-2xl font-bold text-white">ZAXY <span class="text-blue-500">Auth</span></h2>
+            <p class="text-xs text-gray-400 mt-1">Silakan login atau daftar akun baru</p>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Username</label>
+                <input type="text" id="authUser" class="w-full bg-[#0d1117] border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Password</label>
+                <input type="password" id="authPass" class="w-full bg-[#0d1117] border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+            </div>
+            
+            <div class="flex gap-2 pt-2">
+                <button onclick="login()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 rounded-lg text-sm transition">Login</button>
+                <button onclick="register()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg text-sm transition">Daftar</button>
+            </div>
+            <p class="text-xs text-center text-gray-500 mt-2">Belum ada akun? Klik <b>Daftar</b>.</p>
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN UTAMA (HOME) ================= -->
+    <div id="homeSection" class="page-section w-full max-w-md mx-auto">
+        <div class="w-full mb-6 flex justify-center">
+            <div class="text-xs font-semibold text-gray-400 bg-gray-800 py-1.5 px-4 rounded-full border border-gray-700 shadow-md">
+                Status: <span id="roleDisplayHome" class="text-blue-400">User</span>
+            </div>
+        </div>
+
+        <div class="text-center mb-8 flex flex-col items-center">
+            <img src="logo.png" alt="ZAXY Logo" class="w-28 h-28 object-cover rounded-2xl mb-4 logo-img" onerror="this.style.display='none'">
+            <h1 class="text-3xl font-extrabold text-white mb-3 tracking-wide">ZAXY <span class="text-blue-500">Generator</span></h1>
+            
+            <div class="bg-blue-900/30 border border-blue-500/30 rounded-lg p-3 text-sm text-blue-200 shadow-lg w-full">
+                <p class="font-semibold mb-1">Selamat datang di ZAXY Generator!</p>
+                <p class="text-xs text-gray-400 leading-relaxed">Tempatnya bikin link <i>loadstring</i> buat script lo sendiri. Kalo ada bug, langsung chat aja di bawah!</p>
+            </div>
+        </div>
+
+        <div class="w-full bg-[#161b22] border border-gray-700 rounded-xl p-4 shadow-2xl relative">
+            <label class="block text-sm font-semibold mb-2 text-gray-300">1. Paste Script Lua Lo:</label>
+            <textarea id="luaInput" class="editor w-full bg-[#0d1117] border border-gray-600 rounded-lg p-3 text-green-400 focus:outline-none focus:border-blue-500 transition text-sm" placeholder="-- Ketik script lo di sini...&#10;print('Halo dari ZAXY!')"></textarea>
+            <div class="mt-3 flex justify-between items-center">
+                <span class="text-xs text-gray-500" id="charCount">0 karakter</span>
+                <button onclick="generateLink()" id="btnGen" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg transition text-sm shadow-lg shadow-blue-500/30">Generate 🚀</button>
+            </div>
+        </div>
+
+        <div id="resultBox" class="hidden w-full mt-6 bg-[#161b22] border border-green-500/50 rounded-xl p-4 shadow-2xl">
+            <label class="block text-sm font-semibold mb-2 text-green-400">2. Link Loadstring Lo (Siap Pakai):</label>
+            <textarea id="outputLink" readonly class="w-full bg-[#0d1117] border border-gray-600 rounded-lg p-3 text-xs text-blue-300 focus:outline-none resize-none h-24 font-mono"></textarea>
+            <button onclick="copyLink()" id="btnCopy" class="mt-3 w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2.5 rounded-lg transition text-sm">Copy Link 📋</button>
+        </div>
+
+        <!-- CHAT ADMIN -->
+        <div class="w-full mt-8 bg-[#161b22] border border-gray-700 rounded-xl shadow-2xl flex flex-col">
+            <div class="p-3 bg-gray-800 border-b border-gray-700 flex justify-between items-center rounded-t-xl">
+                <span class="text-sm font-bold text-white">💬 Chat Admin</span>
+                <span class="text-xs text-green-400 animate-pulse">● Online</span>
+            </div>
+            <div id="chatMessages" class="chat-container">
+                <div class="text-center text-xs text-gray-500 py-4" id="chatEmpty">Belum ada pesan. Mulai chat!</div>
+            </div>
+            <div class="p-3 bg-gray-800 border-t border-gray-700 rounded-b-xl flex gap-2">
+                <input type="text" id="chatInput" class="flex-1 bg-[#0d1117] border border-gray-600 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Ketik bug/pesan..." onkeypress="if(event.key === 'Enter') kirimPesan()">
+                <button onclick="kirimPesan()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 rounded-lg text-sm transition">Kirim</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN PROFIL ================= -->
+    <div id="profileSection" class="page-section w-full max-w-md mx-auto mt-6">
+        <div class="bg-[#161b22] border border-gray-700 rounded-xl p-6 shadow-2xl w-full flex flex-col items-center">
+            
+            <!-- Avatar -->
+            <div class="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center border-4 border-blue-500 shadow-lg mb-4">
+                <span class="text-4xl" id="profileInitial">U</span>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-white mb-1" id="profileName">Username</h2>
+            <p class="text-sm text-blue-400 mb-6 bg-blue-900/30 px-3 py-1 rounded-full border border-blue-500/30" id="profileRole">Role: User</p>
+            
+            <div class="w-full bg-[#0d1117] border border-gray-700 rounded-lg p-4 mb-6 space-y-3">
+                <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                    <span class="text-gray-400 text-sm">Status Akun</span>
+                    <span class="text-green-400 text-sm font-semibold">Aktif</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Terakhir Login</span>
+                    <span class="text-gray-300 text-sm" id="profileTime"></span>
+                </div>
+            </div>
+
+            <!-- Tombol Logout -->
+            <button onclick="logout()" class="w-full bg-red-600/20 hover:bg-red-600/40 border border-red-500/50 text-red-400 font-bold py-3 rounded-lg transition flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                Logout Akun
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= BOTTOM NAVIGATION BAR ================= -->
+    <div id="bottomNav" class="hidden fixed bottom-0 left-0 w-full bg-[#161b22] border-t border-gray-800 shadow-[0_-5px_15px_rgba(0,0,0,0.5)] z-50">
+        <div class="max-w-md mx-auto flex justify-around items-center h-16">
+            <!-- Menu Home -->
+            <button onclick="switchPage('home')" id="navHome" class="flex flex-col items-center justify-center w-full h-full text-blue-500 hover:text-blue-400 transition">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span class="text-[10px] font-semibold">Home</span>
+            </button>
+            
+            <!-- Menu Profil -->
+            <button onclick="switchPage('profile')" id="navProfile" class="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-300 transition">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <span class="text-[10px] font-semibold">Profil</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ================= KONFIGURASI OWNER / DEV =================
+        const DEV_USER = "zaxydev";
+        const DEV_PASS = "zaxyowner123";
+
+        // ================= LOGIKA NAVIGASI HALAMAN =================
+        function switchPage(page) {
+            // Sembunyiin semua halaman
+            document.getElementById('homeSection').classList.remove('active');
+            document.getElementById('profileSection').classList.remove('active');
+            
+            // Reset warna nav
+            document.getElementById('navHome').className = "flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-300 transition";
+            document.getElementById('navProfile').className = "flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-300 transition";
+
+            // Tampilin halaman yang dipilih
+            if(page === 'home') {
+                document.getElementById('homeSection').classList.add('active');
+                document.getElementById('navHome').className = "flex flex-col items-center justify-center w-full h-full text-blue-500 transition";
+            } else if(page === 'profile') {
+                document.getElementById('profileSection').classList.add('active');
+                document.getElementById('navProfile').className = "flex flex-col items-center justify-center w-full h-full text-blue-500 transition";
+                loadProfile();
+            }
+        }
+
+        // ================= LOGIKA LOGIN & REGISTER =================
+        function checkLogin() {
+            const currentUser = localStorage.getItem('zaxy_user');
+            if (currentUser) {
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('bottomNav').classList.remove('hidden');
+                switchPage('home'); // Default ke home
+                
+                // Update Role Text di Home
+                if (currentUser === DEV_USER) {
+                    document.getElementById('roleDisplayHome').innerText = "Developer (Owner)";
+                    document.getElementById('roleDisplayHome').className = "text-red-400 font-bold";
+                } else {
+                    document.getElementById('roleDisplayHome').innerText = "User";
+                    document.getElementById('roleDisplayHome').className = "text-blue-400";
+                }
+                
+                loadChat();
+            } else {
+                document.getElementById('authSection').classList.remove('hidden');
+                document.getElementById('homeSection').classList.remove('active');
+                document.getElementById('profileSection').classList.remove('active');
+                document.getElementById('bottomNav').classList.add('hidden');
+            }
+        }
+
+        function loadProfile() {
+            const currentUser = localStorage.getItem('zaxy_user');
+            if(!currentUser) return;
+
+            document.getElementById('profileName').innerText = currentUser;
+            document.getElementById('profileInitial').innerText = currentUser.charAt(0).toUpperCase();
+            
+            const isDev = currentUser === DEV_USER;
+            document.getElementById('profileRole').innerText = isDev ? "Role: Developer (Owner)" : "Role: User";
+            document.getElementById('profileRole').className = isDev 
+                ? "text-sm mb-6 bg-red-900/30 px-3 py-1 rounded-full border border-red-500/30 text-red-400" 
+                : "text-sm mb-6 bg-blue-900/30 px-3 py-1 rounded-full border border-blue-500/30 text-blue-400";
+
+            // Fake time biar keren
+            const now = new Date();
+            document.getElementById('profileTime').innerText = now.toLocaleDateString('id-ID') + ' ' + now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function register() {
+            const user = document.getElementById('authUser').value.trim();
+            const pass = document.getElementById('authPass').value;
+
+            if (!user || !pass) return alert('Username dan Password gak boleh kosong!');
+            if (user === DEV_USER) return alert('Username ini dilindungi!');
+            if (localStorage.getItem('zaxy_db_' + user)) return alert('Username sudah dipakai, pake yang lain!');
+
+            localStorage.setItem('zaxy_db_' + user, pass);
+            alert('Daftar berhasil! Silakan klik Login.');
+        }
+
+        function login() {
+            const user = document.getElementById('authUser').value.trim();
+            const pass = document.getElementById('authPass').value;
+
+            if (user === DEV_USER && pass === DEV_PASS) {
+                localStorage.setItem('zaxy_user', user);
+                checkLogin();
+                return;
+            }
+
+            const savedPass = localStorage.getItem('zaxy_db_' + user);
+            if (savedPass && savedPass === pass) {
+                localStorage.setItem('zaxy_user', user);
+                checkLogin();
+            } else {
+                alert('Username atau Password salah!');
+            }
+        }
+
+        function logout() {
+            if(confirm("Yakin mau logout dari akun ini?")) {
+                localStorage.removeItem('zaxy_user');
+                checkLogin();
+            }
+        }
+
+        window.onload = checkLogin;
+
+        // ================= LOGIKA CHAT ADMIN =================
+        function loadChat() {
+            const chatBox = document.getElementById('chatMessages');
+            const messages = JSON.parse(localStorage.getItem('zaxy_chat_messages')) || [];
+            
+            chatBox.innerHTML = '';
+            if (messages.length === 0) {
+                chatBox.innerHTML = '<div class="text-center text-xs text-gray-500 py-4" id="chatEmpty">Belum ada pesan. Mulai chat!</div>';
+                return;
+            }
+
+            messages.forEach(msg => {
+                const bubble = document.createElement('div');
+                const isAdmin = msg.sender === DEV_USER;
+                
+                bubble.className = `chat-bubble ${isAdmin ? 'chat-admin' : 'chat-user'}`;
+                bubble.innerHTML = `<span class="chat-name">${isAdmin ? '👑 Admin' : msg.sender}</span>${msg.text}`;
+                chatBox.appendChild(bubble);
+            });
+            
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function kirimPesan() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            const currentUser = localStorage.getItem('zaxy_user');
+
+            if (!text || !currentUser) return;
+
+            const messages = JSON.parse(localStorage.getItem('zaxy_chat_messages')) || [];
+            messages.push({ sender: currentUser, text: text, time: Date.now() });
+            localStorage.setItem('zaxy_chat_messages', JSON.stringify(messages));
+
+            input.value = '';
+            loadChat();
+        }
+
+        // ================= LOGIKA GENERATOR =================
+        document.getElementById('luaInput').addEventListener('input', function() {
+            document.getElementById('charCount').innerText = this.value.length + ' karakter';
+        });
+
+        function generateLink() {
+            const luaCode = document.getElementById('luaInput').value;
+            const btnGen = document.getElementById('btnGen');
+            
+            if (!luaCode.trim()) return alert('Script-nya kosong bre, isi dulu!');
+
+            btnGen.innerText = "Processing...";
+            btnGen.disabled = true;
+
+            try {
+                const base64Code = btoa(unescape(encodeURIComponent(luaCode)));
+                const loaderScript = `
+                    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+                    local function d(s) return (s:gsub('[^'..b..'=]', '')):gsub('.', function(x) 
+                        if (x == '=') then return '' end
+                        local r,f='',(b:find(x)-1)
+                        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+                        return r;
+                    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+                        if (#x ~= 8) then return '' end
+                        local c=0
+                        for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+                        return string.char(c)
+                    end) end
+                    local code = d('${base64Code}')
+                    local func = loadstring(code)
+        
